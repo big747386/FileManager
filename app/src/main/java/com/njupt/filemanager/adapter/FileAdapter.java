@@ -15,6 +15,9 @@ import com.njupt.filemanager.bean.FileBean;
 import com.njupt.filemanager.bean.FileType;
 
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -118,11 +121,65 @@ public class FileAdapter extends RecyclerViewAdapter {
         selectSet.clear();
     }
 
-    public void delete(Context context, MainActivity mainActivity) {
+    public void delete(MainActivity mainActivity) {
         for (FileBean fileBean : selectSet) {
-            list.remove(fileBean);
+            File file = new File(fileBean.getPath());
+            boolean result = file.delete();
         }
         mainActivity.closeSelectMode();
         selectSet.clear();
+    }
+
+    public List<File> performCopy() {
+        List<File> canList = new ArrayList<>();
+        selectSet.stream().forEach(e -> {
+            File file = new File(e.getPath());
+            canList.add(file);
+        });
+        selectSet.clear();
+        return canList;
+    }
+
+    public void paste(List<File> canList, String dst) {
+        doPaste(canList, dst);
+    }
+
+    public void pasteAndDelete(List<File> canList, String dst) {
+        doPaste(canList, dst);
+        for (File file: canList) {
+            boolean result = file.delete();
+        }
+    }
+
+    private void doPaste(List<File> canList, String dst) {
+        FileInputStream fis = null;
+        FileOutputStream fos = null;
+        for (File file : canList) {
+            try {
+                fis = new FileInputStream(file);
+                File newFile = new File(dst + "/" + file.getName());
+                fos = new FileOutputStream(newFile);
+
+                while (true) {
+                    byte[] data = new byte[1024];
+                    int volume = fis.read(data);
+
+                    if (volume <= 0) {
+                        break;
+                    }
+
+                    fos.write(data);
+                }
+            } catch (Exception e) {
+                System.out.println("error");
+            } finally {
+                try {
+                    fis.close();
+                    fos.close();
+                } catch (Exception e) {
+                    // ignore
+                }
+            }
+        }
     }
 }

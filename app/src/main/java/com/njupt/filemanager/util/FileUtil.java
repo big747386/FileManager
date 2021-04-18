@@ -231,7 +231,4 @@ public class FileUtil {
         context.startActivity(Intent.createChooser(share, "发送"));
     }
 
-    public static void moveFile(Context context, File file) {
-
-    }
 }

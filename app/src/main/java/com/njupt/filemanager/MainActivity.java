@@ -44,19 +44,31 @@ public class MainActivity extends AppCompatActivity {
     private int PERMISSION_CODE_WRITE_EXTERNAL_STORAGE = 100;
     private String rootPath;
     private TitleAdapter titleAdapter;
+
+    public static boolean isSelectMode = false;
+    public static boolean isCopyMode = false;
+    private String currentTitlePath;
+
     private LinearLayout modeBar;
     private LinearLayout modeBarNavigation;
     private LinearLayout modeBarMove;
     private LinearLayout modeBarCopy;
     private LinearLayout modeBarDelete;
-    public static boolean isSelectMode = false;
-    private String currentTitlePath;
 
     // menu
     private MenuItem searchMenuItem;
     private MenuItem suffixMenuItem;
     private MenuItem sortMenuItem;
 
+    // copy
+    private LinearLayout copyBar;
+    private LinearLayout copyBarPaste;
+    private LinearLayout copyBarCancel;
+    private List<File> canList;
+
+
+    // 1 cut 2 copy
+    private int copyOrCut;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -80,6 +92,10 @@ public class MainActivity extends AppCompatActivity {
         modeBarDelete = (LinearLayout) findViewById(R.id.mode_bar_delete);
         modeBarMove = (LinearLayout) findViewById(R.id.mode_bar_move);
         modeBarNavigation = (LinearLayout) findViewById(R.id.mode_bar_navigation);
+
+        copyBar = (LinearLayout) findViewById(R.id.copy_bar);
+        copyBarPaste = (LinearLayout) findViewById(R.id.copy_bar_paste);
+        copyBarCancel = (LinearLayout) findViewById(R.id.copy_bar_cancel);
 
         fileAdapter.setOnItemClickListener(new RecyclerViewAdapter.OnItemClickListener() {
             @Override
@@ -163,14 +179,48 @@ public class MainActivity extends AppCompatActivity {
         modeBarMove.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-
+                openCopyMode();
+                canList = fileAdapter.performCopy();
+                copyOrCut = 2;
             }
         });
 
         modeBarDelete.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                fileAdapter.delete(MainActivity.this, MainActivity.this);
+                fileAdapter.delete(MainActivity.this);
+                getFile(currentTitlePath);
+            }
+        });
+
+        modeBarCopy.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                openCopyMode();
+                canList = fileAdapter.performCopy();
+                copyOrCut = 1;
+            }
+        });
+
+        copyBarPaste.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if (copyOrCut == 2) {
+                    fileAdapter.pasteAndDelete(canList, currentTitlePath);
+                } else if (copyOrCut == 1) {
+                    fileAdapter.paste(canList, currentTitlePath);
+                }
+
+                closeCopyMode();
+                getFile(currentTitlePath);
+            }
+        });
+
+
+        copyBarCancel.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                closeCopyMode();
             }
         });
     }
@@ -351,5 +401,30 @@ public class MainActivity extends AppCompatActivity {
         isSelectMode = true;
         modeBar.setVisibility(View.VISIBLE);
         fileAdapter.refresh();
+    }
+
+    public void openCopyMode() {
+        isCopyMode = true;
+        modeBar.setVisibility(View.GONE);
+        copyBar.setVisibility(View.VISIBLE);
+        fileAdapter.setOnItemLongClickListener(null);
+    }
+
+    public void closeCopyMode() {
+        isCopyMode = false;
+        copyBar.setVisibility(View.GONE);
+        fileAdapter.setOnItemLongClickListener(new RecyclerViewAdapter.OnItemLongClickListener() {
+            @Override
+            public boolean onItemLongClick(View view, RecyclerView.ViewHolder viewHolder, int position) {
+                if (viewHolder instanceof FileHolder) {
+                    FileBean fileBean = (FileBean) fileAdapter.getItem(position);
+                    FileType fileType = fileBean.getFileType();
+                    if (!isSelectMode) {
+                        openSelectMode();
+                    }
+                }
+                return true;
+            }
+        });
     }
 }
