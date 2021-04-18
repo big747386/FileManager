@@ -1,10 +1,11 @@
-package com.njupt.filemanager;
+package com.njupt.filemanager.util;
 
 import android.content.Context;
 import android.content.Intent;
 import android.net.Uri;
 import android.support.v4.content.FileProvider;
 
+import com.njupt.filemanager.BuildConfig;
 import com.njupt.filemanager.bean.FileType;
 
 import java.io.File;
@@ -228,5 +229,9 @@ public class FileUtil {
         share.putExtra(Intent.EXTRA_STREAM, path);
         share.setType("*/*");//此处可发送多种文件
         context.startActivity(Intent.createChooser(share, "发送"));
+    }
+
+    public static void moveFile(Context context, File file) {
+
     }
 }

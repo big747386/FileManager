@@ -1,9 +1,10 @@
 package com.njupt.filemanager.adapter;
 import android.view.View;
+import android.widget.CheckBox;
 import android.widget.ImageView;
 import android.widget.TextView;
 import com.bumptech.glide.Glide;
-import com.njupt.filemanager.FileUtil;
+import com.njupt.filemanager.util.FileUtil;
 import com.njupt.filemanager.R;
 import com.njupt.filemanager.adapter.base.RecyclerViewAdapter;
 import com.njupt.filemanager.adapter.base.RecyclerViewHolder;
@@ -12,6 +13,8 @@ import com.njupt.filemanager.bean.FileType;
 
 import java.io.File;
 
+import static com.njupt.filemanager.MainActivity.isSelectMode;
+
 public class FileHolder extends RecyclerViewHolder<FileHolder> {
 
     ImageView fileIcon;
@@ -19,6 +22,7 @@ public class FileHolder extends RecyclerViewHolder<FileHolder> {
     TextView fileChildCount;
     TextView fileSize;
     ImageView dir_enter_image;
+    public CheckBox checkBox;
 
     public FileHolder(View view) {
         super(view);
@@ -27,11 +31,12 @@ public class FileHolder extends RecyclerViewHolder<FileHolder> {
         fileChildCount = (TextView) view.findViewById(R.id.fileChildCount);
         fileSize = (TextView) view.findViewById(R.id.fileSize);
         dir_enter_image = (ImageView) view.findViewById(R.id.dir_enter_image);
+        checkBox = (CheckBox) view.findViewById(R.id.checkBox);
     }
 
     @Override
     public void onBindViewHolder(final FileHolder fileHolder, RecyclerViewAdapter adapter, int position) {
-        FileBean fileBean = (FileBean) adapter.getItem(position);
+        final FileBean fileBean = (FileBean) adapter.getItem(position);
         fileHolder.fileName.setText(fileBean.getName());
 
         FileType fileType = fileBean.getFileType();
@@ -69,5 +74,8 @@ public class FileHolder extends RecyclerViewHolder<FileHolder> {
         } else {
             fileHolder.fileIcon.setImageResource(R.mipmap.file_icon_other);
         }
+
+        checkBox.setVisibility(isSelectMode ? View.VISIBLE : View.GONE);
     }
+
 }

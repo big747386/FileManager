@@ -2,16 +2,21 @@ package com.njupt.filemanager;
 
 import android.Manifest;
 import android.os.AsyncTask;
+import android.os.Build;
 import android.os.Bundle;
 import android.os.Environment;
 import android.support.annotation.NonNull;
+import android.support.annotation.RequiresApi;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.view.KeyEvent;
+import android.view.Menu;
+import android.view.MenuItem;
 import android.view.View;
 import android.widget.LinearLayout;
 
+import com.njupt.filemanager.util.FileUtil;
 import com.yanzhenjie.permission.AndPermission;
 import com.yanzhenjie.permission.PermissionListener;
 import com.njupt.filemanager.adapter.FileHolder;
@@ -26,6 +31,7 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.stream.Collectors;
 
 
 public class MainActivity extends AppCompatActivity {
@@ -38,6 +44,18 @@ public class MainActivity extends AppCompatActivity {
     private int PERMISSION_CODE_WRITE_EXTERNAL_STORAGE = 100;
     private String rootPath;
     private TitleAdapter titleAdapter;
+    private LinearLayout modeBar;
+    private LinearLayout modeBarNavigation;
+    private LinearLayout modeBarMove;
+    private LinearLayout modeBarCopy;
+    private LinearLayout modeBarDelete;
+    public static boolean isSelectMode = false;
+    private String currentTitlePath;
+
+    // menu
+    private MenuItem searchMenuItem;
+    private MenuItem suffixMenuItem;
+    private MenuItem sortMenuItem;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -55,8 +73,13 @@ public class MainActivity extends AppCompatActivity {
         fileAdapter = new FileAdapter(this, beanList);
         recyclerView.setLayoutManager(new LinearLayoutManager(this));
         recyclerView.setAdapter(fileAdapter);
-
         empty_rel = (LinearLayout) findViewById(R.id.empty_rel);
+
+        modeBar = (LinearLayout) findViewById(R.id.mode_bar);
+        modeBarCopy = (LinearLayout) findViewById(R.id.mode_bar_copy);
+        modeBarDelete = (LinearLayout) findViewById(R.id.mode_bar_delete);
+        modeBarMove = (LinearLayout) findViewById(R.id.mode_bar_move);
+        modeBarNavigation = (LinearLayout) findViewById(R.id.mode_bar_navigation);
 
         fileAdapter.setOnItemClickListener(new RecyclerViewAdapter.OnItemClickListener() {
             @Override
@@ -91,11 +114,11 @@ public class MainActivity extends AppCompatActivity {
                 if (viewHolder instanceof FileHolder) {
                     FileBean fileBean = (FileBean) fileAdapter.getItem(position);
                     FileType fileType = fileBean.getFileType();
-                    if (fileType != null && fileType != FileType.directory) {
-                        FileUtil.sendFile(MainActivity.this, new File(fileBean.getPath()));
+                    if (!isSelectMode) {
+                        openSelectMode();
                     }
                 }
-                return false;
+                return true;
             }
         });
 
@@ -104,6 +127,7 @@ public class MainActivity extends AppCompatActivity {
             public void onItemClick(View view, RecyclerView.ViewHolder viewHolder, int position) {
                 TitlePath titlePath = (TitlePath) titleAdapter.getItem(position);
                 getFile(titlePath.getPath());
+                currentTitlePath = titlePath.getPath();
 
                 int count = titleAdapter.getItemCount();
                 int removeCount = count - position - 1;
@@ -128,10 +152,69 @@ public class MainActivity extends AppCompatActivity {
                     .permission(Manifest.permission.WRITE_EXTERNAL_STORAGE)
                     .send();
         }
+
+        modeBarNavigation.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                fileAdapter.navigate(MainActivity.this, MainActivity.this);
+            }
+        });
+
+        modeBarMove.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+
+            }
+        });
+
+        modeBarDelete.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                fileAdapter.delete(MainActivity.this, MainActivity.this);
+            }
+        });
+    }
+
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        getMenuInflater().inflate(R.menu.option_menu, menu);
+        suffixMenuItem = menu.findItem(R.id.menu_suffix);
+        searchMenuItem = menu.findItem(R.id.menu_search);
+        sortMenuItem = menu.findItem(R.id.menu_sort);
+        return super.onCreateOptionsMenu(menu);
+    }
+
+    @RequiresApi(api = Build.VERSION_CODES.N)
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        switch (item.getItemId()) {
+            case R.id.menu_search:
+                return true;
+            case R.id.menu_sort:
+                if (sortMenuItem.getTitle().equals("按大小排序")) {
+                    sortMenuItem.setTitle("按时间排序");
+                } else {
+                    sortMenuItem.setTitle("按大小排序");
+                }
+                getFile(currentTitlePath);
+                return true;
+            case R.id.menu_suffix:
+                if (suffixMenuItem.getTitle().equals("隐藏后缀")) {
+                    suffixMenuItem.setTitle("显示后缀");
+                } else {
+                    suffixMenuItem.setTitle("隐藏后缀");
+                }
+                getFile(currentTitlePath);
+                return true;
+            default:
+                return super.onOptionsItemSelected(item);
+        }
     }
 
     public void getFile(String path) {
+        closeSelectMode();
         rootFile = new File(path + File.separator);
+        currentTitlePath = rootFile.getPath();
         new MyTask(rootFile).executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, "");
     }
 
@@ -152,6 +235,9 @@ public class MainActivity extends AppCompatActivity {
                     Collections.addAll(fileList, filesArray);  //把数组转化成list
                     Collections.sort(fileList, FileUtil.comparator);  //按照名字排序
 
+                    if (sortMenuItem != null && sortMenuItem.getTitle().equals("按时间排序")) {
+                        fileList.sort(((o1, o2) -> (int)o1.length() - (int)o2.length()));
+                    }
                     for (File f : fileList) {
                         if (f.isHidden()) continue;
 
@@ -171,6 +257,20 @@ public class MainActivity extends AppCompatActivity {
 
                     }
                 }
+            }
+
+            if (suffixMenuItem != null && suffixMenuItem.getTitle().equals("显示后缀")) {
+                fileBeenList = fileBeenList.stream().map(o -> {
+                    if (o == null || o.getName() == null) {
+                        return o;
+                    }
+                    String name = o.getName();
+                    int index = name.lastIndexOf('.');
+                    if (index != -1) {
+                        o.setName(name.substring(0, index));
+                    }
+                    return o;
+                }).collect(Collectors.toList());
             }
 
             beanList = fileBeenList;
@@ -208,6 +308,8 @@ public class MainActivity extends AppCompatActivity {
                 titleAdapter.removeItem(titlePathList.size() - 1);
                 getFile(titlePathList.get(titlePathList.size() - 1).getPath());
             }
+
+            closeSelectMode();
             return true;
         }
         return super.onKeyDown(keyCode, event);
@@ -238,4 +340,16 @@ public class MainActivity extends AppCompatActivity {
                     .show();
         }
     };
+
+    public void closeSelectMode() {
+        isSelectMode = false;
+        modeBar.setVisibility(View.GONE);
+        fileAdapter.refresh();
+    }
+
+    public void openSelectMode() {
+        isSelectMode = true;
+        modeBar.setVisibility(View.VISIBLE);
+        fileAdapter.refresh();
+    }
 }
