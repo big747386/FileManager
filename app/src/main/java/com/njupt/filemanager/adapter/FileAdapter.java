@@ -8,7 +8,7 @@ import android.view.ViewGroup;
 import android.widget.CompoundButton;
 
 import com.njupt.filemanager.util.FileUtil;
-import com.njupt.filemanager.MainActivity;
+import com.njupt.filemanager.activity.MainActivity;
 import com.njupt.filemanager.R;
 import com.njupt.filemanager.adapter.base.RecyclerViewAdapter;
 import com.njupt.filemanager.bean.FileBean;
@@ -22,7 +22,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
-import static com.njupt.filemanager.MainActivity.isSelectMode;
+import static com.njupt.filemanager.activity.MainActivity.isSelectMode;
 
 public class FileAdapter extends RecyclerViewAdapter {
 

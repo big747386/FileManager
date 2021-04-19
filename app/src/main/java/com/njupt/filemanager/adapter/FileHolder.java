@@ -13,7 +13,7 @@ import com.njupt.filemanager.bean.FileType;
 
 import java.io.File;
 
-import static com.njupt.filemanager.MainActivity.isSelectMode;
+import static com.njupt.filemanager.activity.MainActivity.isSelectMode;
 
 public class FileHolder extends RecyclerViewHolder<FileHolder> {
 

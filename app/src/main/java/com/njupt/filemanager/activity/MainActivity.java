@@ -1,6 +1,7 @@
-package com.njupt.filemanager;
+package com.njupt.filemanager.activity;
 
 import android.Manifest;
+import android.content.Intent;
 import android.os.AsyncTask;
 import android.os.Build;
 import android.os.Bundle;
@@ -16,6 +17,7 @@ import android.view.MenuItem;
 import android.view.View;
 import android.widget.LinearLayout;
 
+import com.njupt.filemanager.R;
 import com.njupt.filemanager.util.FileUtil;
 import com.yanzhenjie.permission.AndPermission;
 import com.yanzhenjie.permission.PermissionListener;
@@ -66,9 +68,9 @@ public class MainActivity extends AppCompatActivity {
     private LinearLayout copyBarCancel;
     private List<File> canList;
 
-
     // 1 cut 2 copy
     private int copyOrCut;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -239,6 +241,10 @@ public class MainActivity extends AppCompatActivity {
     public boolean onOptionsItemSelected(MenuItem item) {
         switch (item.getItemId()) {
             case R.id.menu_search:
+                Intent intent = new Intent();
+                intent.setClass(MainActivity.this, SearchableActivity.class);
+                intent.putExtra("data", currentTitlePath);
+                startActivity(intent);
                 return true;
             case R.id.menu_sort:
                 if (sortMenuItem.getTitle().equals("按大小排序")) {
