@@ -15,6 +15,7 @@ import java.io.File;
 
 import static com.njupt.filemanager.activity.MainActivity.isSelectMode;
 
+// 文件holder
 public class FileHolder extends RecyclerViewHolder<FileHolder> {
 
     ImageView fileIcon;

@@ -35,40 +35,49 @@ import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 
-
+/**
+ * 主页面
+ */
 public class MainActivity extends AppCompatActivity {
+
+    // 这里有两个adapter，一个是FileAdapter，一个是TitleAdapter，分别是文件的列表和上面的路径栏
+    // 具体可以看adapter包下面的代码，相关知识搜索RecycleView
     private RecyclerView title_recycler_view;
     private RecyclerView recyclerView;
     private FileAdapter fileAdapter;
     private List<FileBean> beanList = new ArrayList<>();
+    // 根文件
     private File rootFile;
     private LinearLayout empty_rel;
     private int PERMISSION_CODE_WRITE_EXTERNAL_STORAGE = 100;
     private String rootPath;
     private TitleAdapter titleAdapter;
 
+    // 是否是多选模式，根据这个判断组件的隐藏或打开
     public static boolean isSelectMode = false;
+    // 是否是粘贴模式
     public static boolean isCopyMode = false;
     private String currentTitlePath;
 
+    // 长按会出现的按钮
     private LinearLayout modeBar;
     private LinearLayout modeBarNavigation;
     private LinearLayout modeBarMove;
     private LinearLayout modeBarCopy;
     private LinearLayout modeBarDelete;
 
-    // menu
+    // menu，右上角的菜单
     private MenuItem searchMenuItem;
     private MenuItem suffixMenuItem;
     private MenuItem sortMenuItem;
 
-    // copy
+    // copy，复制相关的按钮
     private LinearLayout copyBar;
     private LinearLayout copyBarPaste;
     private LinearLayout copyBarCancel;
     private List<File> canList;
 
-    // 1 cut 2 copy
+    // 1 cut 2 copy，标识是剪切还是粘贴的
     private int copyOrCut;
 
     @Override
@@ -99,6 +108,7 @@ public class MainActivity extends AppCompatActivity {
         copyBarPaste = (LinearLayout) findViewById(R.id.copy_bar_paste);
         copyBarCancel = (LinearLayout) findViewById(R.id.copy_bar_cancel);
 
+        // 点击事件
         fileAdapter.setOnItemClickListener(new RecyclerViewAdapter.OnItemClickListener() {
             @Override
             public void onItemClick(View view, RecyclerView.ViewHolder viewHolder, int position) {
@@ -126,6 +136,7 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
+        // 长按事件
         fileAdapter.setOnItemLongClickListener(new RecyclerViewAdapter.OnItemLongClickListener() {
             @Override
             public boolean onItemLongClick(View view, RecyclerView.ViewHolder viewHolder, int position) {
@@ -140,6 +151,7 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
+        // 地址栏点击选择跳转到相应的目录
         titleAdapter.setOnItemClickListener(new RecyclerViewAdapter.OnItemClickListener() {
             @Override
             public void onItemClick(View view, RecyclerView.ViewHolder viewHolder, int position) {
@@ -171,6 +183,7 @@ public class MainActivity extends AppCompatActivity {
                     .send();
         }
 
+        // 发送
         modeBarNavigation.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -178,6 +191,7 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
+        // 移动
         modeBarMove.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -187,6 +201,7 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
+        // 删除
         modeBarDelete.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -195,6 +210,7 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
+        // 复制
         modeBarCopy.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -204,6 +220,7 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
+        // 粘贴
         copyBarPaste.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -219,6 +236,7 @@ public class MainActivity extends AppCompatActivity {
         });
 
 
+        // 取消
         copyBarCancel.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -227,6 +245,7 @@ public class MainActivity extends AppCompatActivity {
         });
     }
 
+    // 创建菜单需要重写的方法
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         getMenuInflater().inflate(R.menu.option_menu, menu);
@@ -236,6 +255,7 @@ public class MainActivity extends AppCompatActivity {
         return super.onCreateOptionsMenu(menu);
     }
 
+    // 菜单按钮点击事件
     @RequiresApi(api = Build.VERSION_CODES.N)
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
@@ -267,6 +287,7 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
+    // 主要的获取目录下文件的方法
     public void getFile(String path) {
         closeSelectMode();
         rootFile = new File(path + File.separator);
@@ -274,6 +295,7 @@ public class MainActivity extends AppCompatActivity {
         new MyTask(rootFile).executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, "");
     }
 
+    // 获取文件的异步线程
     class MyTask extends AsyncTask {
         File file;
 
@@ -315,6 +337,7 @@ public class MainActivity extends AppCompatActivity {
                 }
             }
 
+            // 是否显示后缀
             if (suffixMenuItem != null && suffixMenuItem.getTitle().equals("显示后缀")) {
                 fileBeenList = fileBeenList.stream().map(o -> {
                     if (o == null || o.getName() == null) {
@@ -352,6 +375,7 @@ public class MainActivity extends AppCompatActivity {
         title_recycler_view.smoothScrollToPosition(titleAdapter.getItemCount());
     }
 
+    // 后退
     @Override
     public boolean onKeyDown(int keyCode, KeyEvent event) {
         if (keyCode == KeyEvent.KEYCODE_BACK
@@ -403,12 +427,14 @@ public class MainActivity extends AppCompatActivity {
         fileAdapter.refresh();
     }
 
+    // 打开多选模式
     public void openSelectMode() {
         isSelectMode = true;
         modeBar.setVisibility(View.VISIBLE);
         fileAdapter.refresh();
     }
 
+    // 打开粘贴模式
     public void openCopyMode() {
         isCopyMode = true;
         modeBar.setVisibility(View.GONE);
@@ -416,6 +442,7 @@ public class MainActivity extends AppCompatActivity {
         fileAdapter.setOnItemLongClickListener(null);
     }
 
+    // 关闭多选模式
     public void closeCopyMode() {
         isCopyMode = false;
         copyBar.setVisibility(View.GONE);

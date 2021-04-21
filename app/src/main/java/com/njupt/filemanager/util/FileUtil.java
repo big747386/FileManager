@@ -11,7 +11,7 @@ import com.njupt.filemanager.bean.FileType;
 import java.io.File;
 import java.util.Comparator;
 
-
+// 文件操作工具类
 public class FileUtil {
 
     /**

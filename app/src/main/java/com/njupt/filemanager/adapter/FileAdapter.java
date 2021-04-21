@@ -24,6 +24,7 @@ import java.util.Set;
 
 import static com.njupt.filemanager.activity.MainActivity.isSelectMode;
 
+// 文件adapter
 public class FileAdapter extends RecyclerViewAdapter {
 
     private Context context;
@@ -110,6 +111,7 @@ public class FileAdapter extends RecyclerViewAdapter {
         notifyDataSetChanged();
     }
 
+    // 发送
     public void navigate(Context context, MainActivity mainActivity) {
         for (FileBean fileBean : selectSet) {
             FileType fileType = fileBean.getFileType();
@@ -121,6 +123,7 @@ public class FileAdapter extends RecyclerViewAdapter {
         selectSet.clear();
     }
 
+    // 删除
     public void delete(MainActivity mainActivity) {
         for (FileBean fileBean : selectSet) {
             File file = new File(fileBean.getPath());
@@ -130,6 +133,7 @@ public class FileAdapter extends RecyclerViewAdapter {
         selectSet.clear();
     }
 
+    // 复制
     public List<File> performCopy() {
         List<File> canList = new ArrayList<>();
         selectSet.stream().forEach(e -> {
@@ -140,10 +144,12 @@ public class FileAdapter extends RecyclerViewAdapter {
         return canList;
     }
 
+    // 粘贴
     public void paste(List<File> canList, String dst) {
         doPaste(canList, dst);
     }
 
+    // 粘贴及删除，即实现剪切和移动的功能
     public void pasteAndDelete(List<File> canList, String dst) {
         doPaste(canList, dst);
         for (File file: canList) {
@@ -151,6 +157,7 @@ public class FileAdapter extends RecyclerViewAdapter {
         }
     }
 
+    // 粘贴的公共方法
     private void doPaste(List<File> canList, String dst) {
         FileInputStream fis = null;
         FileOutputStream fos = null;

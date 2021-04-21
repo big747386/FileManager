@@ -29,6 +29,10 @@ import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 
+/**
+ * 
+ * 搜索页面，大部分和主页面是一样的，直接抄过来了
+ */
 public class SearchableActivity extends AppCompatActivity {
     private RecyclerView title_recycler_view;
     private RecyclerView recyclerView;
@@ -40,14 +44,21 @@ public class SearchableActivity extends AppCompatActivity {
     private String rootPath;
     private TitleAdapter titleAdapter;
     private String currentTitlePath;
+    // 搜索栏，用的就是原生的，页面可以看layout的SearchView
     private SearchView searchView;
 
+    /**
+     * 页面创建方法
+     * @param savedInstanceState
+     */
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        // 隐藏最上面的标题栏
         getSupportActionBar().hide();
         setContentView(R.layout.activity_search);
         Intent intent = getIntent();
+        // 获取主页面传递的参数，这里就是当前文件夹路径
         currentTitlePath = intent.getStringExtra("data");
 
         //设置Title
@@ -64,6 +75,7 @@ public class SearchableActivity extends AppCompatActivity {
         empty_rel = (LinearLayout) findViewById(R.id.empty_rel);
         searchView = (SearchView) findViewById(R.id.searchEdit);
 
+        // 点击事件
         fileAdapter.setOnItemClickListener(new RecyclerViewAdapter.OnItemClickListener() {
             @Override
             public void onItemClick(View view, RecyclerView.ViewHolder viewHolder, int position) {

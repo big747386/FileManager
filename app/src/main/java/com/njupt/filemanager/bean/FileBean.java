@@ -1,5 +1,8 @@
 package com.njupt.filemanager.bean;
 
+/**
+ * 文件类，存储文件有关的信息，文件夹也是文件的一种
+ */
 public class FileBean {
 
     private String name;
